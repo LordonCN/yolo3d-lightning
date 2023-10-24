@@ -250,7 +250,7 @@ class detectionInfo(object):
         z_corners = [0, 0, self.w, self.w, self.w, self.w, 0, 0]
 
         x_corners = [i - self.l / 2 for i in x_corners]
-        y_corners = [i - self.h for i in y_corners]
+        y_corners = [i - self.h / 2 for i in y_corners]
         z_corners = [i - self.w / 2 for i in z_corners]
 
         corners_3d = np.transpose(np.array([x_corners, y_corners, z_corners]))
@@ -355,7 +355,7 @@ class KITTIObject():
         z_corners = [0, 0, self.w, self.w, self.w, self.w, 0, 0]
 
         x_corners = [i - self.l / 2 for i in x_corners]
-        y_corners = [i - self.h for i in y_corners]
+        y_corners = [i - self.h / 2 for i in y_corners]
         z_corners = [i - self.w / 2 for i in z_corners]
 
         corners_3d = np.transpose(np.array([x_corners, y_corners, z_corners]))

@@ -31,8 +31,16 @@ class RegressorModel(LightningModule):
         self.dim_loss_func = nn.MSELoss()
         self.orient_loss_func = OrientationLoss
 
+    # TODO: export model use this
     def forward(self, x):
-        return self.net(x)
+        output = self.net(x)
+        orient = output[0]
+        conf = output[1]
+        dim = output[2]
+        return [orient, conf, dim]
+    
+    # def forward(self, x):
+    #     return self.net(x)
 
     def on_train_start(self):
         # by default lightning executes validation step sanity checks before training starts,
@@ -46,7 +54,7 @@ class RegressorModel(LightningModule):
         # convert to float
         x = x.float()
         truth_orient = y["Orientation"].float()
-        truth_conf = y["Confidence"].float()
+        truth_conf = y["Confidence"].float() # front or back
         truth_dim = y["Dimensions"].float()
 
         # predict y_hat
@@ -56,9 +64,10 @@ class RegressorModel(LightningModule):
         # compute loss
         orient_loss = self.orient_loss_func(orient, truth_orient, truth_conf)
         dim_loss = self.dim_loss_func(dim, truth_dim)
-        truth_conf = torch.max(truth_conf, dim=1)[1]
+        # truth_conf = torch.max(truth_conf, dim=1)[1]
         conf_loss = self.conf_loss_func(conf, truth_conf)
-        loss_theta = conf_loss + self.hparams.w * orient_loss
+        
+        loss_theta = conf_loss + 1.5 * self.hparams.w * orient_loss
         loss = self.hparams.alpha * dim_loss + loss_theta
 
         return [loss, loss_theta, orient_loss, dim_loss, conf_loss], preds, y
@@ -122,7 +131,6 @@ class RegressorModel(LightningModule):
                 momentum=self.hparams.momentum
             )
         # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=5)
-
         return optimizer
 
 class RegressorModel2(LightningModule):

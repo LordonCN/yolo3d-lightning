@@ -234,7 +234,7 @@ def recover_angle(bin_anchor, bin_confidence, bin_num):
     angle_l = angle % (2 * np.pi)
 
     # change to ray back to [-pi, pi]
-    angle = angle_l - np.pi / 2
+    angle = angle_l + wedge / 2 - np.pi
     if angle > np.pi:
         angle -= 2 * np.pi
     angle = round(angle, 2)
@@ -267,7 +267,9 @@ def translation_constraints(P2, obj, rot_local):
     A = np.zeros((4, 3))
     b = np.zeros((4, 1))
     I = np.identity(3)
-
+    
+    # object coordinate T, samply divide into xyz
+    # bug1: h div 2
     xmin_candi, xmax_candi, ymin_candi, ymax_candi = obj.box3d_candidate(rot_local, soft_range=8)
 
     X  = np.bmat([xmin_candi, xmax_candi,
@@ -275,9 +277,13 @@ def translation_constraints(P2, obj, rot_local):
     # X: [x, y, z] in object coordinate
     X = X.reshape(4,3).T
 
-    # construct equation (4, 3)
+    # construct equation (3, 4)
+    # object four point in bev
     for i in range(4):
+        # X[:,i] sames as Ti
+        # matrice = [R T] * Xo
         matrice = np.bmat([[I, np.matmul(R, X[:,i])], [np.zeros((1,3)), np.ones((1,1))]])
+        # M = K * [R T] * Xo
         M = np.matmul(P2, matrice)
 
         if i % 2 == 0:
@@ -335,7 +341,7 @@ class detectionInfo(object):
         z_corners = [0, 0, self.w, self.w, self.w, self.w, 0, 0]
 
         x_corners = [i - self.l / 2 for i in x_corners]
-        y_corners = [i - self.h for i in y_corners]
+        y_corners = [i - self.h / 2 for i in y_corners]
         z_corners = [i - self.w / 2 for i in z_corners]
 
         corners_3d = np.transpose(np.array([x_corners, y_corners, z_corners]))

@@ -3,7 +3,7 @@
 # specify here default training configuration
 defaults:
   - _self_
-  - model: regressor3.yaml
+  - model: regressor.yaml
 
   # enable color logging
   - override hydra/hydra_logging: colorlog
@@ -19,7 +19,7 @@ ignore_warnings: True
 root: ${hydra:runtime.cwd}
 
 # checkpoint directory
-checkpoint_dir: ${root}/logs/train/runs/2022-09-28_10-36-08/checkpoints/last.ckpt
+checkpoint_dir: ${root}/weights/epoch_183.ckpt
 
 # dump dir
 dump_dir: ${root}/weights
@@ -30,7 +30,9 @@ input_sample:
   size: (1, 3, 224, 224)
 
 # convert to
-convert_to: "pytorch" # [pytorch, torchscript, onnx, tensorrt]
-
+convert_to: "pytorch" # [pytorch, onnx, tensorrt]
 # model name without extension
-name: ${dump_dir}/mobilenetv3-last
+name: ${dump_dir}/pytorch-test-0906-10
+
+# convert_to: "onnx" # [pytorch, onnx, tensorrt]
+# name: ${dump_dir}/onnx-3d-0817-5

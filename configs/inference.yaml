@@ -34,8 +34,8 @@ save_result: True
 # save_txt: True
 
 # regressor weights
-# regressor_weights: ${root}/weights/regressor_resnet18.pt
-regressor_weights: ${root}/weights/mobilenetv3-best.pt
+regressor_weights: ${root}/weights/regressor_resnet18.pt
+# regressor_weights: ${root}/weights/mobilenetv3-best.pt
 
 # inference type
 inference_type: pytorch # [pytorch, onnx, openvino, tensorrt]

@@ -8,9 +8,9 @@ seed: 42069
 datamodule:
   _target_: src.datamodules.kitti_datamodule.KITTIDataModule
   dataset_path: ${paths.data_dir}
-  train_sets: ${paths.data_dir}/train_80.txt
-  val_sets: ${paths.data_dir}/val_80.txt
-  test_sets: ${paths.data_dir}/test_80.txt
+  train_sets: ${paths.data_dir}/ImageSets/train.txt
+  val_sets: ${paths.data_dir}/ImageSets/val.txt
+  test_sets: ${paths.data_dir}/ImageSets/test.txt
   batch_size: 64
   num_worker: 32
 model:
@@ -86,9 +86,6 @@ trainer:
   sync_batchnorm: true
   gpus:
   - 0
-  - 1
-  - 2
-  - 3
   strategy: ddp
 paths:
   root_dir: ${oc.env:PROJECT_ROOT}
@@ -100,4 +97,4 @@ extras:
   ignore_warnings: false
   enforce_tags: true
   print_config: true
-name: mobilenetv3
+name: new_network

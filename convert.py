@@ -25,7 +25,10 @@ def convert(config: DictConfig):
     # Init lightning model
     log.info(f"Instantiating model <{config.model._target_}>")
     model: LightningModule = hydra.utils.instantiate(config.model)
-
+    # regressor: LightningModule = hydra.utils.instantiate(config.model)
+    # regressor.load_state_dict(torch.load(config.get("regressor_weights"), map_location="cpu"))
+    # regressor.eval().to(config.get("device"))
+    
     # Convert relative ckpt path to absolute path if necessary
     log.info(f"Load checkpoint <{config.get('checkpoint_dir')}>")
     ckpt_path = config.get("checkpoint_dir")
@@ -43,10 +46,6 @@ def convert(config: DictConfig):
     if config.get('convert_to') == 'pytorch':
         log.info("Convert to Pytorch (.pt)")
         torch.save(model.state_dict(), f'{config.get("name")}.pt')
-        log.info(f"Saved model {config.get('name')}.pt")
-    if config.get('convert_to') == 'torchscript':
-        log.info("Convert to Torchscript (.pt)")
-        torch.jit.save(model.to_torchscript(), f'{config.get("name")}.pt')
         log.info(f"Saved model {config.get('name')}.pt")
     if config.get('convert_to') == 'onnx':
         log.info("Convert to ONNX (.onnx)")

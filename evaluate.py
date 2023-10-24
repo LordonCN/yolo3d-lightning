@@ -156,8 +156,8 @@ def detector_yolov5(model_path: str, cfg_path: str, classes: int, device: str):
 def class_to_labels(class_: int, list_labels: List = None):
 
     if list_labels is None:
-        # TODO: change some labels mistakes
-        list_labels = ["car", "car", "truck", "pedestrian", "cyclist"]
+        # TODO: change some labels
+        list_labels = ["car", "truck", "van", "bus", "pedestrian", "cyclist", "trafficcone", "unknown"]
 
     return list_labels[int(class_)]
 

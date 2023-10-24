@@ -13,19 +13,20 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-seed: 420
-
-trainer:
-  min_epochs: 1
-  max_epochs: 20
-  # limit_train_batches: 1.0
-  # limit_val_batches: 1.0
-  gpus: [0,1,2,3]
-  strategy: ddp
-
-datamodule:
-  train_sets: ${paths.data_dir}/train_80.txt
-  val_sets: ${paths.data_dir}/val_80.txt
+seed: 42069
 
 # name of the run determines folder name in logs
 name: "new_network"
+
+datamodule:
+  train_sets: ${paths.data_dir}/ImageSets/train.txt
+  val_sets: ${paths.data_dir}/ImageSets/val.txt
+  test_sets: ${paths.data_dir}/ImageSets/test.txt
+
+trainer:
+  min_epochs: 1
+  max_epochs: 200
+  # limit_train_batches: 1.0
+  # limit_val_batches: 1.0
+  gpus: [0]
+  strategy: ddp

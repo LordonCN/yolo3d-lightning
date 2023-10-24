@@ -40,8 +40,7 @@ def get_thresholds(scores: np.ndarray, num_gt, num_sample_pts=41):
 
 def clean_data(gt_anno, dt_anno, current_class, difficulty):
     CLASS_NAMES = [
-        'car', 'pedestrian', 'cyclist', 'van', 'person_sitting', 'car',
-        'tractor', 'trailer'
+        "car", "truck", "van", "bus", "pedestrian", "cyclist", "trafficcone", "unknown"
     ]
     MIN_HEIGHT = [40, 25, 25]
     MAX_OCCLUSION = [0, 1, 2]
@@ -517,7 +516,7 @@ def eval_class(gt_annos,
         z_axis=z_axis,
         z_center=z_center)
     overlaps, parted_overlaps, total_dt_num, total_gt_num = rets
-    N_SAMPLE_PTS = 41
+    N_SAMPLE_PTS = 50
     num_minoverlap = len(min_overlaps)
     num_class = len(current_classes)
     num_difficulty = len(difficultys)
@@ -736,13 +735,13 @@ def get_official_eval_result(gt_annos,
     min_overlaps = np.stack([overlap_mod, overlap_easy], axis=0)  # [2, 3, 5]
     class_to_name = {
         0: 'Car',
-        1: 'Pedestrian',
-        2: 'Cyclist',
-        3: 'Van',
-        4: 'Person_sitting',
-        5: 'car',
-        6: 'tractor',
-        7: 'trailer',
+        1: 'Truck',
+        2: 'Van',
+        3: 'Bus',
+        4: 'Pedestrian',
+        5: 'Cyclist',
+        6: 'TrafficCron',
+        7: 'Unknown',
     }
     name_to_class = {v: n for n, v in class_to_name.items()}
     if not isinstance(current_classes, (list, tuple)):
@@ -804,13 +803,13 @@ def get_coco_eval_result(gt_annos,
                          z_center=1.0):
     class_to_name = {
         0: 'Car',
-        1: 'Pedestrian',
-        2: 'Cyclist',
-        3: 'Van',
-        4: 'Person_sitting',
-        5: 'car',
-        6: 'tractor',
-        7: 'trailer',
+        1: 'Truck',
+        2: 'Van',
+        3: 'Bus',
+        4: 'Pedestrian',
+        5: 'Cyclist',
+        6: 'TrafficCron',
+        7: 'Unknown',
     }
     class_to_range = {
         0: [0.5, 1.0, 0.05],

@@ -13,34 +13,54 @@ class RegressorNet(nn.Module):
         bins: int,
     ):
         super().__init__()
-
         # init model
         self.in_features = self._get_in_features(backbone)
         self.model = nn.Sequential(*(list(backbone.children())[:-2]))
         self.bins = bins
 
-        # orientation head, for orientation estimation
+        # # orientation head, for orientation estimation
+        # self.orientation = nn.Sequential(
+        #     nn.Linear(self.in_features, 256),
+        #     nn.ReLU(True),
+        #     nn.Dropout(),
+        #     nn.Linear(256, 256),
+        #     nn.ReLU(True),
+        #     nn.Dropout(),
+        #     nn.Linear(256, self.bins*2) # 4 bins 
+        # )
+
+        # # confident head, for orientation estimation
+        # self.confidence = nn.Sequential(
+        #     nn.Linear(self.in_features, 256),
+        #     nn.ReLU(True),
+        #     nn.Dropout(),
+        #     nn.Linear(256, 256),
+        #     nn.ReLU(True),
+        #     nn.Dropout(),
+        #     nn.Linear(256, self.bins),
+        #     nn.Sigmoid()
+        # )
         self.orientation = nn.Sequential(
-            nn.Linear(self.in_features, 256),
+            nn.Linear(self.in_features, 1024),
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(256, 256),
+            nn.Linear(1024, 1024),
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(256, self.bins*2) # 4 bins
+            nn.Linear(1024, self.bins*2) # 4 bins 
         )
 
         # confident head, for orientation estimation
         self.confidence = nn.Sequential(
-            nn.Linear(self.in_features, 256),
+            nn.Linear(self.in_features, 512),
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(256, 256),
+            nn.Linear(512, 512),
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(256, self.bins),
+            nn.Linear(512, self.bins),
+            nn.Sigmoid()
         )
-
         # dimension head
         self.dimension = nn.Sequential(
             nn.Linear(self.in_features, 512),
@@ -58,8 +78,10 @@ class RegressorNet(nn.Module):
 
         orientation = self.orientation(x)
         orientation = orientation.view(-1, self.bins, 2)
-        orientation = F.normalize(orientation, dim=2)
-        
+        # orientation = F.normalize(orientation, dim=2)
+        # TODO: export model use this
+        orientation = orientation.div(orientation.norm(dim=2, keepdim=True))
+
         confidence = self.confidence(x)
 
         dimension = self.dimension(x)
@@ -93,6 +115,7 @@ class RegressorNet2(nn.Module):
         self.bins = bins
 
         # orientation head, for orientation estimation
+        # TODO: inprove 256 to 1024
         self.orientation = nn.Sequential(
             nn.Linear(self.in_features, 256),
             nn.LeakyReLU(0.1),
@@ -125,8 +148,9 @@ class RegressorNet2(nn.Module):
 
         orientation = self.orientation(x)
         orientation = orientation.view(-1, self.bins, 2)
-        orientation = F.normalize(orientation, dim=2)
-        
+         # TODO: export model use this
+        orientation = orientation.div(orientation.norm(dim=2, keepdim=True))
+
         confidence = self.confidence(x)
 
         dimension = self.dimension(x)
@@ -158,7 +182,8 @@ def OrientationLoss(orient_batch, orientGT_batch, confGT_batch):
     theta_diff = torch.atan2(orientGT_batch[:,1], orientGT_batch[:,0])
     estimated_theta_diff = torch.atan2(orient_batch[:,1], orient_batch[:,0])
 
-    return -1 * torch.cos(theta_diff - estimated_theta_diff).mean()
+    return 2 - 2 * torch.cos(theta_diff - estimated_theta_diff).mean()
+    # return -torch.cos(theta_diff - estimated_theta_diff).mean()
 
 
 def orientation_loss2(y_pred, y_true):

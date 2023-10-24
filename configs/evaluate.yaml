@@ -27,29 +27,29 @@ root: ${hydra:runtime.cwd}
 pred_dir: ${root}/outputs/2022-09-29/09-42-21/evaluate
 
 # calib_file
-calib_file: ${root}/data/global_calib.txt
+calib_file: ${root}/assets/global_calib.txt
 
 # regressor weights
-regressor_weights: ${root}/weights/mobilenetv3-best.pt
+regressor_weights: ${root}/weights/regressor_resnet18.pt
 
 # validation images directory
 val_images_path: ${root}/data/KITTI/images
 
 # validation sets directory
-val_sets: ${root}/data/KITTI/val_80.txt
+val_sets: ${root}/data/KITTI/ImageSets/val.txt
 
 # class to evaluated
-classes: 2
+classes: 7
 
 # class_to_name = {
-#     0: 'Car',
-#     1: 'Pedestrian',
-#     2: 'Cyclist',
-#     3: 'Van',
-#     4: 'Person_sitting',
-#     5: 'car',
-#     6: 'tractor',
-#     7: 'trailer',
+      # 0: 'Car',
+      # 1: 'Truck',
+      # 2: 'Van',
+      # 3: 'Bus',
+      # 4: 'Pedestrian',
+      # 5: 'Cyclist',
+      # 6: 'TrafficCron',
+      # 7: 'Unknown',
 # }
 
 # gt/label path

@@ -380,9 +380,9 @@ class Plot3DBox:
 
         return corners_2D
 
-    def draw_3Dbox(self, ax, P2, line, color):
+    def draw_3Dbox(self, ax, P2, line, color, gt=False):
 
-        corners_2D = self.compute_3Dbox(P2, line)
+        corners_2D = self.compute_3Dbox(P2, line, gt)
 
         # draw all lines through path
         # https://matplotlib.org/users/path_tutorial.html
@@ -497,7 +497,7 @@ class Plot3DBoxBev:
     def __init__(
         self,
         proj_matrix = None, # projection matrix P2
-        object_list = ["car", "pedestrian", "truck", "cyclist", "motorcycle", "bus"],
+        object_list = ["car", "pedestrian", "truck", "cyclist", "van", "bus", 'trafficcone'],
         
     ) -> None:
 
@@ -518,11 +518,12 @@ class Plot3DBoxBev:
             "pedestrian": "green",
             "truck": "yellow",
             "cyclist": "red",
-            "motorcycle": "cyan",
+            "trafficcone": "red",
+            "van": "cyan",
             "bus": "magenta",
         }
 
-    def compute_bev(self, dim, loc, rot_y):
+    def compute_bev(self, dim, loc, rot_y, gt=False):
         """compute bev"""
         # convert dimension, location and rotation
         h = dim[0] * self.scale
@@ -535,10 +536,16 @@ class Plot3DBoxBev:
 
         R = np.array([[-np.cos(rot_y), np.sin(rot_y)], [np.sin(rot_y), np.cos(rot_y)]])
         t = np.array([x, z]).reshape(1, 2).T
-        x_corners = [0, l, l, 0]  # -l/2
-        z_corners = [w, w, 0, 0]  # -w/2
-        x_corners += -w / 2
-        z_corners += -l / 2
+        
+        if not gt:
+            x_corners = [0, l, l, 0]  # -l/2
+            z_corners = [w, w, 0, 0]  # -w/2
+            x_corners += -w / 2
+            z_corners += -l / 2
+        else:
+            x_corners = [-w/2, l-w/2, l-w/2, -w/2]  # -l/2
+            z_corners = [w-l/2, w-l/2, -l/2, -l/2]  # -w/2
+
         # bounding box in object coordinate
         corners_2D = np.array([x_corners, z_corners])
         # rotate
@@ -552,30 +559,22 @@ class Plot3DBoxBev:
 
         return np.vstack((corners_2D, corners_2D[0, :]))
 
-    def draw_bev(self, dim, loc, rot_y):
+    def draw_bev(self, dim, loc, rot_y, gt=False):
         """draw bev"""
-
-        # gt_corners_2d = self.compute_bev(self.gt_dim, self.gt_loc, self.gt_rot_y)
-        pred_corners_2d = self.compute_bev(dim, loc, rot_y)
+        pred_corners_2d = self.compute_bev(dim, loc, rot_y, gt)
 
         codes = [Path.LINETO] * pred_corners_2d.shape[0]
         codes[0] = Path.MOVETO
         codes[-1] = Path.CLOSEPOLY
         pth = Path(pred_corners_2d, codes)
-        patch = patches.PathPatch(pth, fill=False, color="green", label="prediction")
+        if not gt:
+            patch = patches.PathPatch(pth, fill=False, color="red", label="prediction")
+        else:
+            patch = patches.PathPatch(pth, fill=False, color="green", label="groundtruth")
+        
         self.ax2.add_patch(patch)
 
-        # draw z location of object
-        self.ax2.text(
-            pred_corners_2d[0, 0],
-            pred_corners_2d[0, 1],
-            f"z: {loc[2]:.2f}",
-            fontsize=8,
-            color="white",
-            bbox=dict(facecolor="green", alpha=0.4, pad=0.5),
-        )
-
-    def compute_3dbox(self, bbox, dim, loc, rot_y):
+    def compute_3dbox(self, bbox, dim, loc, rot_y, gt=False):
         """compute 3d box"""
         # 2d bounding box
         xmin, ymin = int(bbox[0]), int(bbox[1])
@@ -586,13 +585,19 @@ class Plot3DBoxBev:
         x, y, z = loc[0], loc[1], loc[2]
 
         R = np.array([[np.cos(rot_y), 0, np.sin(rot_y)], [0, 1, 0], [-np.sin(rot_y), 0, np.cos(rot_y)]])
-        x_corners = [0, l, l, l, l, 0, 0, 0]  # -l/2
-        y_corners = [0, 0, h, h, 0, 0, h, h]  # -h
-        z_corners = [0, 0, 0, w, w, w, w, 0]  # -w/2
+        
+        if not gt:
+            x_corners = [0, l, l, l, l, 0, 0, 0]  # -l/2
+            y_corners = [0, 0, h, h, 0, 0, h, h]  # -h
+            z_corners = [0, 0, 0, w, w, w, w, 0]  # -w/2
 
-        x_corners += -l / 2
-        y_corners += -h
-        z_corners += -w / 2
+            x_corners += -l / 2
+            y_corners += -h / 2
+            z_corners += -w / 2
+        else:
+            x_corners = [-l/2, l/2, l/2, l/2, l/2, -l/2, -l/2, -l/2]  # -l/2
+            y_corners = [-h/2, -h/2, 0, 0, -h/2, -h/2, 0, 0]  # -h/2
+            z_corners = [-w/2, -w/2, -w/2, w/2, w/2, w/2, w/2, -w/2]  # -w/2
 
         corners_3D = np.array([x_corners, y_corners, z_corners])
         corners_3D = R.dot(corners_3D)
@@ -605,10 +610,10 @@ class Plot3DBoxBev:
 
         return corners_2D
 
-    def draw_3dbox(self, class_object, bbox, dim, loc, rot_y):
+    def draw_3dbox(self, class_object, bbox, dim, loc, rot_y, gt=False):
         """draw 3d box"""
         color = self.COLOR[class_object]
-        corners_2D = self.compute_3dbox(bbox, dim, loc, rot_y)
+        corners_2D = self.compute_3dbox(bbox, dim, loc, rot_y, gt)
 
         # draw all lines through path
         # https://matplotlib.org/users/path_tutorial.html
@@ -627,16 +632,6 @@ class Plot3DBoxBev:
         self.ax.add_patch(patch)
         self.ax.add_patch(front_fill)
 
-        # draw text of location, dimension, and rotation
-        self.ax.text(
-            corners_2D[:, 1][0],
-            corners_2D[:, 1][1],
-            f"Loc: ({loc[0]:.2f}, {loc[1]:.2f}, {loc[2]:.2f})\nDim: ({dim[0]:.2f}, {dim[1]:.2f}, {dim[2]:.2f})\nYaw: {rot_y:.2f}",
-            fontsize=8,
-            color="white",
-            bbox=dict(facecolor=color, alpha=0.4, pad=0.5),
-        )
-
     def plot(
         self,
         img = None,
@@ -645,6 +640,7 @@ class Plot3DBoxBev:
         dim = None, # dimension of the box (l, w, h)
         loc = None, # location of the box (x, y, z)
         rot_y = None, # rotation of the box around y-axis
+        gt = False
     ):
         """plot 3d bbox and bev"""
         # initialize bev image
@@ -652,8 +648,9 @@ class Plot3DBoxBev:
 
         # loop through all detections
         if class_object in self.object_list:
-            self.draw_3dbox(class_object, bbox, dim, loc, rot_y)
-            self.draw_bev(dim, loc, rot_y)
+            if not gt:
+                self.draw_3dbox(class_object, bbox, dim, loc, rot_y, gt)
+            self.draw_bev(dim, loc, rot_y, gt)
 
         # visualize 3D bounding box
         self.ax.imshow(img)

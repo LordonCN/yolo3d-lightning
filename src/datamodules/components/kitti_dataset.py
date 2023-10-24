@@ -224,7 +224,7 @@ class KITTIDataset(Dataset):
 
         # dataset path
         dataset_path = Path(dataset_path)
-        self.image_path = dataset_path / "images"  # image_2
+        self.image_path = dataset_path / "image_2"  # image_2
         self.label_path = dataset_path / "label_2"
         self.calib_path = dataset_path / "calib"
         self.global_calib = dataset_path / "calib_kitti.txt"
@@ -258,8 +258,10 @@ class KITTIDataset(Dataset):
             )
 
         # AVERANGE num classes dataset
-        # class_list same as in detector
-        self.class_list = ["Car", "Pedestrian", "Cyclist", "Truck"]
+        # class_list same as in detector TODO 'car', 'cyclist', 'truck','van', 'pedestrian', 'tram'
+        # self.class_list = ["Car", "Pedestrian", "Cyclist", "Truck", "Van", "TrafficCone", "Unknown"]
+        self.class_list = ["Car", "Pedestrian", "Cyclist", "Truck", "Van", "Bus", "TrafficCone", "Unknown"]
+        # self.class_list = ["Car", "Cyclist", "Truck", "Van", "Pedestrian", "Tram"]
         self.averages = ClassAverages(self.class_list)
 
         # list of object [id (000001), line_num]
@@ -288,7 +290,7 @@ class KITTIDataset(Dataset):
         if id != self.curr_id:
             self.curr_id = id
             # read image (.png)
-            self.curr_img = cv2.imread(str(self.image_path / f"{id}.png"))
+            self.curr_img = cv2.imread(str(self.image_path / f"{id}.jpg"))
 
         label = self.labels[id][str(line_num)]
 
@@ -456,8 +458,36 @@ class DetectedObject:
 
         # crop image
         pt1, pt2 = box_2d[0], box_2d[1]
-        crop = img[pt1[1] : pt2[1] + 1, pt1[0] : pt2[0] + 1]
-        crop = cv2.resize(crop, (224, 224), interpolation=cv2.INTER_CUBIC)
+        point_list1 = [pt1[0], pt1[1]]
+        point_list2 = [pt2[0], pt2[1]]
+        
+        if point_list1[0] < 0:
+            point_list1[0] = 0
+        if point_list1[1] < 0:
+            point_list1[1] = 0
+        if point_list2[0] < 0:
+            point_list2[0] = 0
+        if point_list2[1] < 0:
+            point_list2[1] = 0
+            
+        if point_list1[0] >= img.shape[0]:
+            point_list1[0] = img.shape[0] - 1
+        if point_list2[0] >= img.shape[0]:
+            point_list2[0] = img.shape[0] - 1
+        if point_list1[1] >= img.shape[1]:
+            point_list1[1] = img.shape[1] - 1
+        if point_list2[1] >= img.shape[1]:
+            point_list2[1] = img.shape[1] - 1
+            
+        crop = img[point_list1[1]:point_list2[1]+1, point_list1[0]:point_list2[0]+1]
+        
+        try: 
+            crop = cv2.resize(crop, (224, 224), interpolation=cv2.INTER_CUBIC)
+        except cv2.error:
+            print("pt1 is ", pt1, " pt2 is ", pt2)
+            print("image shape is ", img.shape)
+            print("box_2d is ", box_2d)
+
 
         # apply transform for batch
         batch = process(crop)
