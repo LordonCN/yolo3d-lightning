@@ -18,8 +18,8 @@ ignore_warnings: True
 # root
 root: ${hydra:runtime.cwd}
 
-# checkpoint directory
-checkpoint_dir: ${root}/weights/epoch_183.ckpt
+# TODO: cahnge to your checkpoint file
+checkpoint_dir: ${root}/weights/last.ckpt
 
 # dump dir
 dump_dir: ${root}/weights
@@ -31,8 +31,9 @@ input_sample:
 
 # convert to
 convert_to: "pytorch" # [pytorch, onnx, tensorrt]
-# model name without extension
-name: ${dump_dir}/pytorch-test-0906-10
+
+# TODO: model name without extension
+name: ${dump_dir}/pytorch-kitti
 
 # convert_to: "onnx" # [pytorch, onnx, tensorrt]
 # name: ${dump_dir}/onnx-3d-0817-5

@@ -46,3 +46,7 @@ source_dir: ${root}/tmp/video_001
 
 # device to inference
 device: 'cpu'
+
+export_onnx: False
+
+func: "label" # image/label

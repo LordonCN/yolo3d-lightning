@@ -258,10 +258,8 @@ class KITTIDataset(Dataset):
             )
 
         # AVERANGE num classes dataset
-        # class_list same as in detector TODO 'car', 'cyclist', 'truck','van', 'pedestrian', 'tram'
-        # self.class_list = ["Car", "Pedestrian", "Cyclist", "Truck", "Van", "TrafficCone", "Unknown"]
-        self.class_list = ["Car", "Pedestrian", "Cyclist", "Truck", "Van", "Bus", "TrafficCone", "Unknown"]
-        # self.class_list = ["Car", "Cyclist", "Truck", "Van", "Pedestrian", "Tram"]
+        # class_list same as in detector
+        self.class_list = ["Car", "Cyclist", "Truck", "Van", "Pedestrian", "Tram"] # KITTI
         self.averages = ClassAverages(self.class_list)
 
         # list of object [id (000001), line_num]
@@ -290,7 +288,7 @@ class KITTIDataset(Dataset):
         if id != self.curr_id:
             self.curr_id = id
             # read image (.png)
-            self.curr_img = cv2.imread(str(self.image_path / f"{id}.jpg"))
+            self.curr_img = cv2.imread(str(self.image_path / f"{id}.png"))
 
         label = self.labels[id][str(line_num)]
 

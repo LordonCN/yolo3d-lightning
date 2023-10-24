@@ -23,9 +23,6 @@ root: ${hydra:runtime.cwd}
 # predictions/output directory
 # pred_dir: ${root}/${hydra:run.dir}/${name}
 
-# for exist predicitions directory
-pred_dir: ${root}/outputs/2022-09-29/09-42-21/evaluate
-
 # calib_file
 calib_file: ${root}/assets/global_calib.txt
 
@@ -33,27 +30,28 @@ calib_file: ${root}/assets/global_calib.txt
 regressor_weights: ${root}/weights/regressor_resnet18.pt
 
 # validation images directory
-val_images_path: ${root}/data/KITTI/images
+val_images_path: ${root}/data/KITTI/images_2
 
 # validation sets directory
 val_sets: ${root}/data/KITTI/ImageSets/val.txt
 
 # class to evaluated
-classes: 7
+classes: 6
 
 # class_to_name = {
       # 0: 'Car',
-      # 1: 'Truck',
-      # 2: 'Van',
-      # 3: 'Bus',
+      # 1: 'Cyclist',
+      # 2: 'Truck',
+      # 3: 'Van',
       # 4: 'Pedestrian',
-      # 5: 'Cyclist',
-      # 6: 'TrafficCron',
-      # 7: 'Unknown',
+      # 5: 'Tram',
 # }
 
-# gt/label path
+# gt label path
 gt_dir: ${root}/data/KITTI/label_2
+
+# dt label path
+pred_dir: ${root}/data/KITTI/result
 
 # device to inference
 device: 'cuda:0'

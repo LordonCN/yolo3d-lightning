@@ -1,85 +1,104 @@
+# creat env for YOLO3D
+```shell
 conda create -n Yolo3D python=3.8 numpy
-
 conda activate Yolo3D
-
 pip install -r requirements.txt
+```
 
-python src/train.py \
-  experiment=sample
+# datasets
+## train data
+```shell
+cd yolo3d-lighting
+ln -s /your/KITTI/path data/KITTI
+```
 
+```bash
+├── data
+│   └── KITTI
+│       ├── calib
+│       ├── images_2
+│       └── labels_2
+```
+
+# Demo
+<div align="center">
+![demo](./docs/assets/show.png)
+</div>
+
+# train
+```shell
+python src/train.py experiment=sample
+```
+> log path:    /logs  \
+> model path:  /weights
+
+# covert
+modify [convert.yaml](configs/convert.yaml) file to trans .ckpt to .pt model
+```shell
+python covert.py
+```
+
+# inference
+In order to show the real model infer ability, we crop image according to gt 2d box as yolo3d input, you can use following command to plot 3d result.
+
+modify [inference.yaml](configs/inference.yaml) file to change configs
+
+```shell
 python inference.py \
-  source_dir=./eval/image_2 \
-  detector.model_path=./weights/backup/detector_yolov5s.pt \
-  regressor_weights=./weights/pytorch-test.pt
+          source_dir=./data/KITTI \
+          detector.classes=6 \
+          regressor_weights=./weights/pytorch-kitti.pt \
+          export_onnx=False \
+          func=image
+```
+
+- source_dir:             path os datasets, include /image_2 and /label_2 folder                    
+- detector.classes:       kitti class
+- regressor_weights:      your model
+- export_onnx:            export onnx model for apollo
+
+> result path: /outputs
+
+# evaluate
+generate label for 3d result:
+```shell
+python inference.py \
+          source_dir=./data/KITTI \
+          detector.classes=6 \
+          regressor_weights=./weights/pytorch-kitti.pt \
+          export_onnx=False \
+          func=label
+```
+> result path: /data/KITTI/result
+
+```bash
+├── data
+│   └── KITTI
+│       ├── calib
+│       ├── images_2
+│       ├── labels_2
+│       └── result
+```
+
+use kitti evaluate tool to calculate mAP:
+```shell
+python evaluate.py \
+          gt_dir=./data/KITTI/label_2 \
+          pred_dir=./data/KITTI/result
+```
+
+- gt_dir:        gt labels folder                    
+- pred_dir:      model output result labels
+
+--------------
 
 <!-- 更改 assets/global_calib.txt 内参矩阵 -->
 python evaluate.py \
   detector.model_path=./weights/detector_yolov5s.pt \
   regressor_weights=./weights/regressor_resnet18.pt
 
-<!-- inference: trans .ckpt to torch .pt model, modify configs/convert.yaml -->
-python convert.py
 
-<!-- then trans pytorch-test.pt to libtorch model -->
-1. 修改模型返回结果 src/models/regressor.py
-python My_inference.py \
-  source_dir=./data/KITTI/test \
-  detector.model_path=./weights/backup/detector_yolov5s.pt \
-  regressor_weights=./weights/backup/regressor_resnet18.pt
-
-<!-- evaluate result -->
-1. 生成class_averages标签
-2. 修改class_to_labels中list_labels映射
-3. inference中执行kitti_inference_label()
-4. 指定图片所在地址source_dir
-5. 指定dt地址result_label_root_path
-6. 指定gt地址gt_label_root_path
-python kitti_inference.py \
-  source_dir=./eval_kitti/image_2_val \
-  detector.model_path=./weights/backup/kitti_yolov5s.pt \
-  detector.cfg_path=./yolov5/models/yolov5s-kitti.yaml \
-  detector.classes=6 \
-  regressor_weights=./weights/backup/regressor_resnet18.pt
-
-
-```json
-  // kitti_inference_label
-  "args": [
-      "source_dir=./eval_kitti/image_2_val",
-      "detector.model_path=./weights/backup/kitti_yolov5s.pt",
-      "detector.cfg_path=./yolov5/models/yolov5s-kitti.yaml",
-      "detector.classes=6",
-      "regressor_weights=weights/backup/regressor_resnet18.pt"
-  ],
-  // kitti_inference_image
-  "args": [
-      "source_dir=./eval_kitti/image_2",
-      "detector.model_path=./weights/backup/kitti_yolov5s.pt",
-      "detector.cfg_path=./yolov5/models/yolov5s-kitti.yaml",
-      "detector.classes=6",
-      "regressor_weights=weights/backup/regressor_resnet18.pt"
-  ],
-  // L4-inference_image&label
-  "args": [
-      "source_dir=./eval_L4/image_2",
-      "detector.model_path=./weights/backup/detector_yolov5s.pt",
-      "regressor_weights=./weights/pytorch-test.pt"
-  ],
-```
-
-# train yolov5
-python train.py --data kitti.yaml --weights '' --cfg yolov5s-kitti.yaml --img 640
-
-
--------------------------TODO------------------------
-python torch2onnx.py \
-    --reg_weights weights/back/resnet18.pkl \
-    --model_select resnet18  \
-    --output_path runs/models/ 
-
-TODO:
-1. use tensorboard to show loss details
-2. update requirements
+# case:
 
 case1:
 AttributeError: ‘Upsample‘ object has no attribute ‘recompute_scale_factor‘
